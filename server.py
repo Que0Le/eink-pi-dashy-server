@@ -50,16 +50,23 @@ def serve_spa(full_path: str):
 
 def display_imgs():
     time.sleep(2)
-    print("clearing and go to sleep...")
-    print("Task done.")
-
+    executable_path = "./epd"
+    if os.path.isfile(fname):
+        print("clearing and go to sleep...")
+        subprocess.run(["sudo", executable_path, "-v", "-1.39", "-m", "0", "-b", "./uploaded_images/image.png"], check=True)
+        print("Task done.")
+    else:
+        print("No eink driver executable file at '" + executable_path + "'")
 
 # POST endpoint to upload image
 @app.post("/upload-pic")
-async def upload_pic(file: UploadFile = File(...)):
+async def upload_pic(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+    # print(f"Filename: {file.filename}, Content-type: {file.content_type}")
+    # print(f"Size (via read): {len(contents)}")
     upload_folder = "uploaded_images"
     os.makedirs(upload_folder, exist_ok=True)
     file_path = os.path.join(upload_folder, file.filename)
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
+    background_tasks.add_task(display_imgs)
     return {"filename": file.filename, "message": "Upload successful"}

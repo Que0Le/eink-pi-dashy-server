@@ -2,7 +2,8 @@
 # DO it once:
 python3 -m venv .venv
 source .venv/bin/activate
-python3 -m pip install fastapi uvicorn pillow python-multipart
+sudo apt install python3-pip
+python3 -m pip install fastapi uvicorn python-multipart
 
 # activate environment
 source .venv/bin/activate
@@ -15,3 +16,6 @@ http://192.168.178.86:8000/static/ha/editpage.html
 # upload pic to pi
 http://192.168.178.86:8000/
 # Now look at the console. Progress should be printed
+
+sudo ./epd -v -1.39 -m 0 -b "./pic/1872x1404_3.bmp"
+```
