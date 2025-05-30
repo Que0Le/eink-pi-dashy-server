@@ -19,3 +19,16 @@ http://192.168.178.86:8000/
 
 sudo ./epd -v -1.39 -m 0 -b "./pic/1872x1404_3.bmp"
 ```
+
+
+
+```bash
+sudo chown -R www-data:www-data eink-pi-web-ui/dist
+sudo chmod -R o+rX eink-pi-web-ui/dist
+
+sudo groupadd sharedrw
+sudo usermod -aG sharedrw www-data
+sudo usermod -aG sharedrw pi
+sudo chown -R :sharedrw /data
+sudo chmod -R 770 /data
+```
