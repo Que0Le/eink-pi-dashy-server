@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from app.dependencies import get_state_manager
 from app.state_manager import StateManager
 from app.dependencies import get_background_worker
@@ -28,3 +28,9 @@ def get_status(worker = Depends(get_background_worker)):
 @router.get("/api/v1/state")
 def read_state(state: StateManager = Depends(get_state_manager)):
     return state.get_state()
+
+@router.post("/api/v1/state")
+async def set_state(request: Request, state: StateManager = Depends(get_state_manager)):
+    data = await request.json()
+    state.update_state(data)
+    return {"message": "State updated", "data": data}
