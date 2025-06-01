@@ -1,6 +1,6 @@
 __pycache__
 .venv
-uploaded_images
+local_data
 *.jpg
 *.png
 epd

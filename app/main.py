@@ -1,14 +1,27 @@
-import time, os, shutil, subprocess
+import time, os, shutil, subprocess, logging, sys
+from pathlib import Path
 
-# Web server
+from fastapi import FastAPI
 from fastapi import FastAPI, File, UploadFile, BackgroundTasks
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-# Inititate
+from .routes import router
+from app.dependencies import init_state_manager, init_background_worker
+from app.display import display_imgs
+
+UPLOAD_FOLDER = "local_data/uploaded_images"
+CONFIG_FOLDER = "local_data/"
+
 app = FastAPI()
-# Allow React frontend on port 3000
+
+@app.on_event("startup")
+def startup_event():
+    init_state_manager(CONFIG_FOLDER + "/state.json")
+    init_background_worker()
+app.include_router(router)
+
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -16,7 +29,6 @@ origins = [
     "http://192.168.178.93",  # Include this if you're accessing via local IP
 ]
 
-UPLOAD_FOLDER = "uploaded_images"
 
 app.mount("/api/v1/all-images/", StaticFiles(directory=UPLOAD_FOLDER), name="All Images")
 
@@ -29,20 +41,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def display_imgs():
-    time.sleep(2)
-    executable_path = "./epd"
-    if os.path.isfile(executable_path):
-        print("clearing and go to sleep...")
-        subprocess.run(["sudo", executable_path, "-v", "-1.39", "-m", "0", "-b", "./uploaded_images/image.png"], check=True)
-        print("Task done.")
-    else:
-        print("No eink driver executable file at '" + executable_path + "'")
-
 @app.get("/api/v1/images")
 def all_images():
-    print("he")
-    return ["image.png", "2025_05_24T21_51_11_711Z__49949168_326750594598992_3929980949416116224_n_jpg_1872x1404.bmp"]
+    return [f.name for f in Path(UPLOAD_FOLDER).iterdir() if f.is_file()]
 
 # POST endpoint to upload image
 @app.post("/api/v1/upload-pic")
@@ -61,5 +62,5 @@ async def upload_and_display_img(background_tasks: BackgroundTasks, file: Upload
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-    background_tasks.add_task(display_imgs)
+    background_tasks.add_task(display_imgs, file_path=file_path)
     return {"filename": file.filename, "message": "Upload successful. Added to queue."}

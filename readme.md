@@ -9,7 +9,8 @@ python3 -m pip install fastapi uvicorn python-multipart
 source .venv/bin/activate
 
 # start web server
-uvicorn server:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 --reload --log-level debug
+
 
 # create an image with this page. Download black and red images
 http://192.168.178.86:8000/static/ha/editpage.html

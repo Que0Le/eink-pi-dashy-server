@@ -1,0 +1,30 @@
+from fastapi import APIRouter, HTTPException, Depends
+from app.dependencies import get_state_manager
+from app.state_manager import StateManager
+from app.dependencies import get_background_worker
+
+router = APIRouter()
+
+@router.get("/api/v1/start-task")
+def start_task(worker = Depends(get_background_worker)):
+    try:
+        worker.start()
+        return {"status": "Task started"}
+    except RuntimeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/api/v1/stop-task")
+def stop_task(worker = Depends(get_background_worker)):
+    try:
+        worker.stop()
+        return {"status": "Task stopped"}
+    except RuntimeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/api/v1/status")
+def get_status(worker = Depends(get_background_worker)):
+    return {"running": worker.is_running()}
+
+@router.get("/api/v1/state")
+def read_state(state: StateManager = Depends(get_state_manager)):
+    return state.get_state()
