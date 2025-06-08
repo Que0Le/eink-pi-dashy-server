@@ -1,5 +1,10 @@
 import time, os, shutil, subprocess, logging, sys
 from pathlib import Path
+import logging
+
+# logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("uvicorn").setLevel(logging.INFO)  # override uvicorn logs
+logging.getLogger("app").setLevel(logging.DEBUG)     # your app logs
 
 from fastapi import FastAPI
 from fastapi import FastAPI, File, UploadFile, BackgroundTasks
@@ -9,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .routes import router
 from app.dependencies import init_state_manager, init_background_worker
-from app.display import display_imgs
+from app.display import display_img
 
 UPLOAD_FOLDER = "local_data/uploaded_images"
 CONFIG_FOLDER = "local_data/"
@@ -45,6 +50,31 @@ app.add_middleware(
 def all_images():
     return [f.name for f in Path(UPLOAD_FOLDER).iterdir() if f.is_file()]
 
+@app.delete("/api/v1/images/{filename}")
+def delete_image(filename: str):
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    if not os.path.exists(file_path):
+        return {"error": "File not found"}, 404
+    try:
+        os.remove(file_path)
+        return {"message": "File deleted successfully"}
+    except Exception as e:
+        logging.error(f"Error deleting file {filename}: {e}")
+        return {"error": "Failed to delete file"}, 500
+
+@app.get("/api/v1/display-image/{filename}")
+def display_image(background_tasks: BackgroundTasks, filename: str):
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    if not os.path.exists(filepath):
+        return {"error": "File not found"}, 404
+    try:
+        background_tasks.add_task(display_img, filepath=filepath)
+        # display_img(file_path)
+        return {"message": f"Displaying image {filename} in background"}
+    except Exception as e:
+        logging.error(f"Error displaying image {filename}: {e}")
+        return {"error": "Failed to display image"}, 500
+
 # POST endpoint to upload image
 @app.post("/api/v1/upload-pic")
 async def upload_pic(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
@@ -59,8 +89,10 @@ async def upload_pic(background_tasks: BackgroundTasks, file: UploadFile = File(
 @app.post("/api/v1/upload-and-display-img")
 async def upload_and_display_img(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
+    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-    background_tasks.add_task(display_imgs, file_path=file_path)
+    background_tasks.add_task(display_img, filepath=filepath)
     return {"filename": file.filename, "message": "Upload successful. Added to queue."}
+
+

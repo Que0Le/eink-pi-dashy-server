@@ -31,6 +31,7 @@ def read_state(state: StateManager = Depends(get_state_manager)):
 
 @router.post("/api/v1/state")
 async def set_state(request: Request, state: StateManager = Depends(get_state_manager)):
+    """ TODO: apply new settings """
     data = await request.json()
     state.update_state(data)
     return {"message": "State updated", "data": data}

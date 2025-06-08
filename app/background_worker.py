@@ -1,7 +1,7 @@
 import threading, time
 from pathlib import Path
 
-from app.display import display_imgs
+from app.display import display_img
 
 UPLOAD_FOLDER = "local_data/uploaded_images"
 
@@ -30,7 +30,7 @@ class BackgroundWorker:
                 #
                 file_path = Path(UPLOAD_FOLDER) / next_file
                 print(f"[Worker] Displaying image: {file_path}")
-                display_imgs(file_path)
+                display_img(file_path)
                 #
                 print("Save current file to state")
                 curr_state["current_slide_show"]["current_file"] = next_file

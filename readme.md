@@ -6,6 +6,7 @@ sudo apt install python3-pip
 python3 -m pip install fastapi uvicorn python-multipart
 
 # activate environment
+cd eink-pi-dashy-server/
 source .venv/bin/activate
 
 # start web server
