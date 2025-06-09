@@ -68,3 +68,7 @@ class StateManager:
         state = self._read_state()
         state["current_slide_show"]["programs_list"].append(program)
         self._write_state(state)
+
+    def get_current_slideshow(self) -> dict:
+        state = self._read_state()
+        return state.get("current_slide_show", {})
