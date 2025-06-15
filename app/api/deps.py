@@ -10,6 +10,7 @@ def init_state_manager(file_path: str):
     state_manager_instance = StateManager(file_path)
 
 def get_state_manager() -> StateManager:
+    global state_manager_instance
     assert state_manager_instance is not None, "StateManager not initialized"
     return state_manager_instance
 

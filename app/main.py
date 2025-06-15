@@ -1,16 +1,17 @@
 import time, os, shutil, subprocess, logging, sys
 from pathlib import Path
 
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+
 from app.api.main import api_router
 from app.core.config import settings
+from app.api.deps import init_state_manager, init_background_worker
 
 # logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("uvicorn").setLevel(logging.INFO)  # override uvicorn logs
 logging.getLogger("app").setLevel(logging.DEBUG)  # your app logs
-
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
 
 origins = [
     "http://localhost:3000",
@@ -23,6 +24,11 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
+
+@app.on_event("startup")
+def startup_event():
+    init_state_manager(settings.CONFIG_FOLDER + "/state.json")
+    init_background_worker()
 
 # Set all CORS enabled origins
 # if settings.all_cors_origins:
