@@ -12,19 +12,29 @@ class BackgroundWorker:
         self.stop_event = threading.Event()
 
     def _task(self):
+        # TODO: check for format and non exist keys
         while not self.stop_event.is_set():
             from app.api.deps import get_state_manager  
 
             print("[Worker] Doing periodic work...")
             state = get_state_manager()
             curr_state = state.get_state()
+            current_file = ""
+            # Do nothing if no file in program list
+            if len(curr_state["current_slide_show"]["programs_list"]) == 0:
+                return
+
             if curr_state["current_slide_show"]["type"] == "slide_show":
                 all_files = [
                     f.name
                     for f in Path(settings.UPLOAD_FOLDER).iterdir()
                     if f.is_file()
                 ]
-                current_file = curr_state["current_slide_show"]["type"]["current_file"]
+                if "current_file" in curr_state["current_slide_show"]:
+
+                    current_file = curr_state["current_slide_show"]["current_file"]
+                else:
+                    current_file = curr_state["current_slide_show"]["programs_list"][0]
                 # get the "next" item in a circular list:
                 try:
                     index = all_files.index(current_file)
@@ -39,9 +49,9 @@ class BackgroundWorker:
                 print(f"[Worker] Displaying image: {file_path}")
                 display_img(file_path)
                 #
-                print("Save current file to state")
                 curr_state["current_slide_show"]["current_file"] = next_file
                 state.update_state(curr_state)
+                print("Saved current file to state")
             else:
                 print("[Worker] No image to display.")
             time.sleep(self.interval)

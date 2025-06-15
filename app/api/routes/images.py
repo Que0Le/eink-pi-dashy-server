@@ -49,6 +49,7 @@ def display_image(background_tasks: BackgroundTasks, filename: str):
 async def upload_pic(file: UploadFile = File(...)):
     # print(f"Filename: {file.filename}, Content-type: {file.content_type}")
     # print(f"Size (via read): {len(contents)}")
+    print("in upload")
     os.makedirs(settings.UPLOAD_FOLDER, exist_ok=True)
     file_path = os.path.join(str(settings.UPLOAD_FOLDER), str(file.filename))
     with open(file_path, "wb") as buffer:
