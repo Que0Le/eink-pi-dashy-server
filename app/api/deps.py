@@ -1,4 +1,4 @@
-from app.state_manager import StateManager
+from app.services.state_manager import StateManager
 from app.services.background_worker import BackgroundWorker
 
 # Singleton instance of the state manager

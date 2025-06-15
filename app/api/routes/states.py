@@ -3,7 +3,7 @@ from app.core.config import settings
 from app.services.background_worker import BackgroundWorker
 from fastapi import APIRouter, HTTPException, Depends, Request
 from app.api.deps import get_state_manager, get_background_worker
-from app.state_manager import StateManager
+from app.services.state_manager import StateManager
 from pydantic import BaseModel
 from typing import List
 
