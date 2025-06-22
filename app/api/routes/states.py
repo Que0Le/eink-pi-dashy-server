@@ -1,18 +1,19 @@
-from app.core.config import settings
+from typing import List
+import json
 
 from app.services.background_worker import BackgroundWorker
 from fastapi import APIRouter, HTTPException, Depends, Request
 from app.api.deps import get_state_manager, get_background_worker
 from app.services.state_manager import StateManager
 from pydantic import BaseModel
-from typing import List
 
+from app.core.config import settings
 
 router = APIRouter(prefix="/states", tags=["states"])
 
 
 @router.get("/start-task")
-def start_task(worker=Depends(get_background_worker)):
+def start_task(worker: BackgroundWorker = Depends(get_background_worker)):
     try:
         worker.start()
         return {"status": "Task started"}
@@ -40,10 +41,23 @@ def read_state(state: StateManager = Depends(get_state_manager)):
 
 
 @router.post("/state")
-async def set_state(request: Request, state: StateManager = Depends(get_state_manager)):
+async def set_state(
+    request: Request, 
+    state: StateManager = Depends(get_state_manager),
+    worker: BackgroundWorker = Depends(get_background_worker)
+):
     """TODO: apply new settings"""
     data = await request.json()
+    print("POST states API: ")
+    print(json.dumps(data, indent=4, sort_keys=True))
     state.update_state(data)
+    if data["mode"] == "static":
+        print("State: Starting static")
+        pass
+    elif data["mode"] == "slide-show":
+        worker.start()
+        print("State: starting slide-show")
+        pass
     return {"message": "State updated", "data": data}
 
 

@@ -24,14 +24,13 @@ class BackgroundWorker:
             if len(curr_state["current_slide_show"]["programs_list"]) == 0:
                 return
 
-            if curr_state["current_slide_show"]["type"] == "slide_show":
+            if curr_state["mode"] == "slide-show":
                 all_files = [
                     f.name
                     for f in Path(settings.UPLOAD_FOLDER).iterdir()
                     if f.is_file()
                 ]
                 if "current_file" in curr_state["current_slide_show"]:
-
                     current_file = curr_state["current_slide_show"]["current_file"]
                 else:
                     current_file = curr_state["current_slide_show"]["programs_list"][0]
